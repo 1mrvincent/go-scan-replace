@@ -15,8 +15,10 @@ func checkerr(err error) {
 	}
 }
 func main() {
+	// slice of files with defects
+	var filesWithDefects []string
 	// set file root directory
-	root := `D:\My Documents\vincent\` //---> change to root dir of the files
+	root := `D:\vincent\` //---> change to root dir of the files
 
 	// read all files in the root directory
 	// returns a slice of file info of type []os.FileInfo
@@ -31,7 +33,7 @@ func main() {
 		checkerr(err)
 		line, err := f.Read(fsize)
 		checkerr(err)
-		log.Println("file currently being read: ", fpath)
+		// log.Println("file currently being read: ", fpath)
 
 		var lnCounter int // new line number Counter
 
@@ -40,9 +42,10 @@ func main() {
 			if string(fsize[i]) == "\n" {
 				// fmt.Println("Line data is", string(fsize[lnCounter:i]))
 				// check if line contains <<"SEGMENT CREATION DEFERRED">>
-				if strings.Contains(string(fsize[lnCounter:i]), "SEGMENT CREATION DEFERRED") {
+				if strings.Contains(string(fsize[lnCounter:i]), "TABLESPACE \"USERS\" ") {
 					log.Println("Defect found in ", file.Name())
-					wData := []byte("    ) --SEGMENT CREATION DEFERRED\n") //---> Data to be written to file
+					filesWithDefects = append(filesWithDefects, fpath)
+					wData := []byte("TABLESPACE \"SYSTEM\" \n") //---> Data to be written to file
 
 					//replace line with wdata
 					l, err := f.WriteAt(wData, int64(lnCounter))
@@ -53,6 +56,11 @@ func main() {
 			}
 		}
 		f.Close()
+	}
+	fmt.Println(" ")
+	fmt.Println("files with defects ")
+	for _, defect := range filesWithDefects {
+		fmt.Println(defect)
 	}
 	fmt.Println("done")
 }
